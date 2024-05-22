@@ -28,13 +28,21 @@ export class TodoComponent implements OnInit {
   listOptionsModalRef: BsModalRef;
   deleteListModalRef: BsModalRef;
   itemDetailsModalRef: BsModalRef;
+  colorOptions: { name: string, value: string }[] = [
+    { name: 'New', value: '#1b88e0' },
+    { name: 'In Process', value: '#fafa73' },
+    { name: 'Completed', value: '#9efa73' },
+    { name: 'Cancelled', value: '#f2c6a7' },
+    { name: 'Not Completed', value: '#991a1a' },
+  ];
+
   itemDetailsFormGroup = this.fb.group({
     id: [null],
     listId: [null],
     priority: [''],
-    note: ['']
+    note: [''],
+    backgroundColor: ['#1b88e0']  // Default backgroundColor to white
   });
-
 
   constructor(
     private listsClient: TodoListsClient,
@@ -142,13 +150,22 @@ export class TodoComponent implements OnInit {
 
     this.itemDetailsModalRef = this.modalService.show(template);
     this.itemDetailsModalRef.onHidden.subscribe(() => {
-        this.stopDeleteCountDown();
+      this.resetForm();
+      this.stopDeleteCountDown();
     });
   }
 
   updateItemDetails(): void {
-    const item = new UpdateTodoItemDetailCommand(this.itemDetailsFormGroup.value);
-    this.itemsClient.updateItemDetails(this.selectedItem.id, item).subscribe(
+    const item = {
+      id: this.itemDetailsFormGroup.value.id,
+      listId: this.itemDetailsFormGroup.value.listId,
+      priority: this.itemDetailsFormGroup.value.priority,
+      note: this.itemDetailsFormGroup.value.note,
+      backgroundColor: this.itemDetailsFormGroup.value.backgroundColor 
+    } as UpdateTodoItemDetailCommand;
+
+    console.log(item)
+    this.itemsClient.updateItemDetails(item.id, item).subscribe(
       () => {
         if (this.selectedItem.listId !== item.listId) {
           this.selectedList.items = this.selectedList.items.filter(
@@ -163,6 +180,7 @@ export class TodoComponent implements OnInit {
 
         this.selectedItem.priority = item.priority;
         this.selectedItem.note = item.note;
+        this.selectedItem.backgroundColor = item.backgroundColor; // Ensure this property is updated
         this.itemDetailsModalRef.hide();
         this.itemDetailsFormGroup.reset();
       },
@@ -176,7 +194,8 @@ export class TodoComponent implements OnInit {
       listId: this.selectedList.id,
       priority: this.priorityLevels[0].value,
       title: '',
-      done: false
+      done: false,
+      backgroundColor: '#FFFFFF'  // Default background color
     } as TodoItemDto;
 
     this.selectedList.items.push(item);
@@ -248,12 +267,26 @@ export class TodoComponent implements OnInit {
     } else {
       this.itemsClient.delete(item.id).subscribe(
         () =>
-        (this.selectedList.items = this.selectedList.items.filter(
-          t => t.id !== item.id
-        )),
+          (this.selectedList.items = this.selectedList.items.filter(
+            t => t.id !== item.id
+          )),
         error => console.error(error)
       );
     }
+  }
+
+  cancelUpdate() {
+    this.itemDetailsModalRef.hide();
+  }
+
+  resetForm() {
+    this.itemDetailsFormGroup.reset({
+      id: null,
+      listId: null,
+      priority: '',
+      note: '',
+      backgroundColor: '#FFFFFF'  // Reset to default color
+    });
   }
 
   stopDeleteCountDown() {
