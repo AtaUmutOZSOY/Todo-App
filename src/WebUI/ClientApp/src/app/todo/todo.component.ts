@@ -29,11 +29,11 @@ export class TodoComponent implements OnInit {
   deleteListModalRef: BsModalRef;
   itemDetailsModalRef: BsModalRef;
   colorOptions: { name: string, value: string }[] = [
-    { name: 'New', value: '#1b88e0' },
-    { name: 'In Process', value: '#fafa73' },
-    { name: 'Completed', value: '#9efa73' },
-    { name: 'Cancelled', value: '#f2c6a7' },
-    { name: 'Not Completed', value: '#991a1a' },
+    { name: 'New', value: '#FFB3B3' },
+    { name: 'In Process', value: '#B3FFB3' },
+    { name: 'Completed', value: '#B3B3FF' },
+    { name: 'Cancelled', value: '#FFFFB3' },
+    { name: 'Not Completed', value: '#FFB3FF' }
   ];
 
   itemDetailsFormGroup = this.fb.group({
@@ -41,7 +41,8 @@ export class TodoComponent implements OnInit {
     listId: [null],
     priority: [''],
     note: [''],
-    backgroundColor: ['#1b88e0']  // Default backgroundColor to white
+    backgroundColor: ['#FFFFFF'],  // Default backgroundColor to white
+    tags: ['']
   });
 
   constructor(
@@ -161,10 +162,10 @@ export class TodoComponent implements OnInit {
       listId: this.itemDetailsFormGroup.value.listId,
       priority: this.itemDetailsFormGroup.value.priority,
       note: this.itemDetailsFormGroup.value.note,
-      backgroundColor: this.itemDetailsFormGroup.value.backgroundColor 
+      backgroundColor: this.itemDetailsFormGroup.value.backgroundColor, // Ensure this property is included
+      tags: this.itemDetailsFormGroup.value.tags // Ensure tags are included
     } as UpdateTodoItemDetailCommand;
 
-    console.log(item)
     this.itemsClient.updateItemDetails(item.id, item).subscribe(
       () => {
         if (this.selectedItem.listId !== item.listId) {
@@ -181,6 +182,7 @@ export class TodoComponent implements OnInit {
         this.selectedItem.priority = item.priority;
         this.selectedItem.note = item.note;
         this.selectedItem.backgroundColor = item.backgroundColor; // Ensure this property is updated
+        this.selectedItem.tags = item.tags; // Ensure tags are updated
         this.itemDetailsModalRef.hide();
         this.itemDetailsFormGroup.reset();
       },
@@ -195,7 +197,8 @@ export class TodoComponent implements OnInit {
       priority: this.priorityLevels[0].value,
       title: '',
       done: false,
-      backgroundColor: '#FFFFFF'  // Default background color
+      backgroundColor: '#FFFFFF',  // Default background color
+      tags: []
     } as TodoItemDto;
 
     this.selectedList.items.push(item);
@@ -285,7 +288,8 @@ export class TodoComponent implements OnInit {
       listId: null,
       priority: '',
       note: '',
-      backgroundColor: '#FFFFFF'  // Reset to default color
+      backgroundColor: '#FFFFFF',  // Reset to default color
+      tags: []
     });
   }
 
@@ -293,5 +297,57 @@ export class TodoComponent implements OnInit {
     clearInterval(this.deleteCountDownInterval);
     this.deleteCountDown = 0;
     this.deleting = false;
+  }
+
+  addTag(item: TodoItemDto, tag: string): void {
+    if (tag && !item.tags.includes(tag)) {
+      item.tags.push(tag);
+      this.updateItem(item);
+    }
+  }
+
+  removeTag(item: TodoItemDto, tag: string): void {
+    item.tags = item.tags.filter(t => t !== tag);
+    this.updateItem(item);
+  }
+
+  updateTags(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const tags = input.value.split(',').map(tag => tag.trim());
+    this.itemDetailsFormGroup.patchValue({ tags: tags });
+  }
+
+  filterTodosByTag(tag: string): void {
+    if (tag) {
+      this.selectedList.items = this.selectedList.items.filter(item => item.tags.includes(tag));
+    } else {
+      this.listsClient.get().subscribe(
+        result => {
+          this.lists = result.lists;
+          this.priorityLevels = result.priorityLevels;
+          if (this.lists.length) {
+            this.selectedList = this.lists[0];
+          }
+        },
+        error => console.error(error)
+      );
+    }
+  }
+
+  searchTodos(text: string): void {
+    if (text) {
+      this.selectedList.items = this.selectedList.items.filter(item => item.title.includes(text) || item.note.includes(text));
+    } else {
+      this.listsClient.get().subscribe(
+        result => {
+          this.lists = result.lists;
+          this.priorityLevels = result.priorityLevels;
+          if (this.lists.length) {
+            this.selectedList = this.lists[0];
+          }
+        },
+        error => console.error(error)
+      );
+    }
   }
 }

@@ -48,6 +48,10 @@
                 (click)="editItem(item, 'itemTitle' + i)" class="form-control item-input-control">
                 <span>{{ item.title }}</span>
               </div>
+              <div class="todo-item-tags">
+                <span *ngFor="let tag of item.tags" (click)="removeTag(item, tag)" class="tag">{{ tag }}</span>
+                <input type="text" placeholder="Add tag" (keyup.enter)="addTag(item, ($event.target as HTMLInputElement).value)" />
+              </div>
             </div>
             <div class="todo-item-commands">
               <button *ngIf="item.id != 0" (click)="showItemDetailsModal(itemDetailsModalTemplate, item)"
@@ -61,6 +65,14 @@
           <button class="btn btn-default">Add Item...</button>
         </li>
       </ul>
+      <div>
+        <label for="filterTag">Filter by Tag:</label>
+        <input id="filterTag" type="text" (keyup.enter)="filterTodosByTag(($event.target as HTMLInputElement).value)" />
+      </div>
+      <div>
+        <label for="searchText">Search:</label>
+        <input id="searchText" type="text" (keyup.enter)="searchTodos(($event.target as HTMLInputElement).value)" />
+      </div>
     </div>
   </div>
 </div>
@@ -127,6 +139,10 @@
         <select id="backgroundColor" class="form-control" formControlName="backgroundColor">
           <option *ngFor="let color of colorOptions" [ngValue]="color.value">{{ color.name }}</option>
         </select>
+      </div>
+      <div class="form-group">
+        <label for="tags">Tags</label>
+        <input id="tags" type="text" class="form-control" placeholder="Add tags (comma separated)" (change)="updateTags($event)"/>
       </div>
     </form>
     <div *ngIf="debug">
