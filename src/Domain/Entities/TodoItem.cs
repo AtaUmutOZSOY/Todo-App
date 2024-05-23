@@ -1,6 +1,4 @@
-﻿namespace Todo_App.Domain.Entities;
-
-public class TodoItem : BaseAuditableEntity
+﻿public class TodoItem : BaseAuditableEntity
 {
     public int ListId { get; set; }
 
@@ -14,7 +12,7 @@ public class TodoItem : BaseAuditableEntity
 
     public string? BackgroundColor { get; set; }
 
-    public List<string> Tags { get; set; } = new List<string>(); 
+    public ICollection<Tag> Tags { get; set; } = new List<Tag>();
 
     private bool _done;
     public bool Done

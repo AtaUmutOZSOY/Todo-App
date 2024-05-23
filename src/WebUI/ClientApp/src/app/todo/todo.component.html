@@ -34,8 +34,23 @@
           <i class="bi bi-three-dots-vertical"></i>
         </button>
       </div>
+      <div class="d-flex justify-content-between mb-3">
+        <div class="form-group me-2">
+          <label for="filterTag" class="form-label">Filter by Tag:</label>
+          <select id="filterTag" class="form-select" (change)="filterTodosByTag($any($event.target).value)">
+            <option value="">All</option>
+            <option *ngFor="let tag of tagList" [value]="tag.tag">
+              {{ tag.tag }} ({{ tag.count }})
+            </option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="searchText" class="form-label">Search:</label>
+          <input id="searchText" type="text" class="form-control" (keyup)="searchTodos($event)" />
+        </div>
+      </div>
       <ul id="todo-items" class="list-group mb-2">
-        <li class="list-group-item" *ngFor="let item of selectedList.items; index as i" [ngStyle]="{'background-color': item.backgroundColor || '#ffffff'}">
+        <li class="list-group-item" *ngFor="let item of filteredItems; index as i" [ngStyle]="{'background-color': item.backgroundColor || '#ffffff'}">
           <div class="d-flex">
             <div class="todo-item-checkbox">
               <input type="checkbox" [(ngModel)]="item.done" (change)="updateItem(item)" />
@@ -45,12 +60,11 @@
                 class="form-control item-input-control" [(ngModel)]="item.title" (keyup.enter)="updateItem(item, true)"
                 (blur)="updateItem(item)" autofocus="autofocus" />
               <div class="todo-item-title" *ngIf="item != selectedItem" [ngClass]="{ 'done-todo': item.done }"
-                (click)="editItem(item, 'itemTitle' + i)" class="form-control item-input-control">
+                (click)="editItem(item, 'itemTitle' + i)">
                 <span>{{ item.title }}</span>
               </div>
-              <div class="todo-item-tags">
-                <span *ngFor="let tag of item.tags" (click)="removeTag(item, tag)" class="tag">{{ tag }}</span>
-                <input type="text" placeholder="Add tag" (keyup.enter)="addTag(item, ($event.target as HTMLInputElement).value)" />
+              <div class="todo-item-tags mt-2">
+                <span *ngFor="let tag of item.tags" class="badge bg-primary me-1" (click)="removeTag(item, tag)">{{ tag }}</span>
               </div>
             </div>
             <div class="todo-item-commands">
@@ -65,14 +79,6 @@
           <button class="btn btn-default">Add Item...</button>
         </li>
       </ul>
-      <div>
-        <label for="filterTag">Filter by Tag:</label>
-        <input id="filterTag" type="text" (keyup.enter)="filterTodosByTag(($event.target as HTMLInputElement).value)" />
-      </div>
-      <div>
-        <label for="searchText">Search:</label>
-        <input id="searchText" type="text" (keyup.enter)="searchTodos(($event.target as HTMLInputElement).value)" />
-      </div>
     </div>
   </div>
 </div>
@@ -83,10 +89,8 @@
 
 <ng-template #listOptionsModalTemplate>
   <div class="modal-header">
-    <h4 class="modal-title pull-left">List Options</h4>
-    <button type="button" class="close btn-close pull-right" aria-label="Close" (click)="listOptionsModalRef.hide()">
-      <span aria-hidden="true" class="visually-hidden">&times;</span>
-    </button>
+    <h4 class="modal-title">List Options</h4>
+    <button type="button" class="close btn-close" aria-label="Close" (click)="listOptionsModalRef.hide()"></button>
   </div>
   <div class="modal-body">
     <div class="form-group">
@@ -99,15 +103,9 @@
     </div>
   </div>
   <div class="modal-footer">
-    <div class="clearfix">
-      <div class="float-start">
-        <button class="btn btn-default text-danger" (click)="confirmDeleteList(deleteListModalTemplate)">Delete</button>
-      </div>
-      <div class="float-end">
-        <button class="btn btn-default" (click)="listOptionsModalRef.hide()">Cancel</button>
-        <button class="btn btn-primary" (click)="updateListOptions()">Update</button>
-      </div>
-    </div>
+    <button class="btn btn-danger" (click)="confirmDeleteList(deleteListModalTemplate)">Delete</button>
+    <button class="btn btn-secondary" (click)="listOptionsModalRef.hide()">Cancel</button>
+    <button class="btn btn-primary" (click)="updateListOptions()">Update</button>
   </div>
 </ng-template>
 
@@ -142,7 +140,7 @@
       </div>
       <div class="form-group">
         <label for="tags">Tags</label>
-        <input id="tags" type="text" class="form-control" placeholder="Add tags (comma separated)" (change)="updateTags($event)"/>
+        <input id="tags" type="text" class="form-control" placeholder="Add tags (comma separated)" (change)="updateTags($event)" />
       </div>
     </form>
     <div *ngIf="debug">
@@ -160,31 +158,25 @@
 
 <ng-template #deleteListModalTemplate>
   <div class="modal-header">
-    <h4 class="modal-title pull-left">Delete "{{ selectedList?.title }}"?</h4>
-    <button type="button" class="close btn-close pull-right" aria-label="Close" (click)="deleteListModalRef.hide()">
-      <span aria-hidden="true" class="visually-hidden">&times;</span>
-    </button>
+    <h4 class="modal-title">Delete "{{ selectedList?.title }}"?</h4>
+    <button type="button" class="close btn-close" aria-label="Close" (click)="deleteListModalRef.hide()"></button>
   </div>
   <div class="modal-body">
-    <p>All items will be permanently deleted. </p>
+    <p>All items will be permanently deleted.</p>
     <div *ngIf="debug">
       <pre>{{ selectedList | json }}</pre>
     </div>
   </div>
-  <div class="modal-footer clearfix">
-    <div class="float-end">
-      <button type="button" class="btn btn-default" (click)="deleteListModalRef.hide()">Cancel</button>
-      <button type="button" class="btn btn-danger" (click)="deleteListConfirmed()">Delete</button>
-    </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" (click)="deleteListModalRef.hide()">Cancel</button>
+    <button class="btn btn-danger" (click)="deleteListConfirmed()">Delete</button>
   </div>
 </ng-template>
 
 <ng-template #newListModalTemplate>
   <div class="modal-header">
-    <h4 class="modal-title pull-left">New List</h4>
-    <button type="button" class="close btn-close pull-right" aria-label="Close" (click)="newListCancelled()">
-      <span aria-hidden="true" class="visually-hidden">&times;</span>
-    </button>
+    <h4 class="modal-title">New List</h4>
+    <button type="button" class="close btn-close" aria-label="Close" (click)="newListCancelled()"></button>
   </div>
   <div class="modal-body">
     <div class="form-group">
@@ -199,10 +191,8 @@
       <pre>{{ newListEditor | json }}</pre>
     </div>
   </div>
-  <div class="modal-footer clearfix">
-    <div class="float-end">
-      <button class="btn btn-default" (click)="newListCancelled()">Cancel</button>
-      <button class="btn btn-primary" (click)="addList()">Create</button>
-    </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" (click)="newListCancelled()">Cancel</button>
+    <button class="btn btn-primary" (click)="addList()">Create</button>
   </div>
 </ng-template>
