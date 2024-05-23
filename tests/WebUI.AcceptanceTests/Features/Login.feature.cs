@@ -78,7 +78,7 @@ namespace Todo_App.WebUI.AcceptanceTests.Features
         
         [NUnit.Framework.TestAttribute()]
         [NUnit.Framework.DescriptionAttribute("User can log in with valid credentials")]
-        public virtual void UserCanLogİnWithValidCredentials()
+        public virtual void UserCanLogInWithValidCredentials()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
@@ -118,7 +118,7 @@ this.ScenarioInitialize(scenarioInfo);
         
         [NUnit.Framework.TestAttribute()]
         [NUnit.Framework.DescriptionAttribute("User cannot log in with invalid credentials")]
-        public virtual void UserCannotLogİnWithİnvalidCredentials()
+        public virtual void UserCannotLogInWithInvalidCredentials()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
