@@ -1,8 +1,10 @@
 ﻿using System.Reflection;
+using System.Reflection.Emit;
 using Duende.IdentityServer.EntityFramework.Options;
 using MediatR;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Todo_App.Application.Common.Interfaces;
 using Todo_App.Domain.Entities;
@@ -30,12 +32,19 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
     public DbSet<TodoList> TodoLists => Set<TodoList>();
 
     public DbSet<TodoItem> TodoItems => Set<TodoItem>();
+    public DbSet<Tag> Tags  => Set<Tag>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
         base.OnModelCreating(builder);
+
+        builder.Entity<TodoItem>()
+           .HasMany(t => t.Tags)
+           .WithOne(tag => tag.TodoItem)
+           .HasForeignKey(tag => tag.TodoItemId);
+
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

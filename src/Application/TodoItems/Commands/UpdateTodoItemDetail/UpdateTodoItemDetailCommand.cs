@@ -16,7 +16,10 @@ public record UpdateTodoItemDetailCommand : IRequest
     public string? BackgroundColor { get; init; }
 
     public string? Note { get; init; }
+    public ICollection<string> Tags { get; set; } = new List<string>();
 }
+
+
 
 public class UpdateTodoItemDetailCommandHandler : IRequestHandler<UpdateTodoItemDetailCommand>
 {
@@ -41,8 +44,16 @@ public class UpdateTodoItemDetailCommandHandler : IRequestHandler<UpdateTodoItem
         entity.Priority = request.Priority;
         entity.Note = request.Note;
         entity.BackgroundColor = request.BackgroundColor;
+
+        entity.Tags.Clear();
+        foreach (var tag in request.Tags)
+        {
+            entity.Tags.Add(new Tag { Value = tag });
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
 
         return Unit.Value;
     }
 }
+
